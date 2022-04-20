@@ -34,4 +34,16 @@ public class MetricSinglePriorityPolicy extends AbstractSinglePriorityPolicy {
       throw new RuntimeException(e);
     }
   }
+
+  @Override
+  protected Double getHelperPriority(SchedulerMetricProvider metricProvider, Task task){
+    try {
+      String helper_task= task.id().concat("-helper");
+      Double priority = metricProvider.get(metric, helper_task);
+      return priority;
+    } catch (Exception e) {
+      LOG.error("Failed to get metric {} for task {}: {}\n", metric, task, e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
 }

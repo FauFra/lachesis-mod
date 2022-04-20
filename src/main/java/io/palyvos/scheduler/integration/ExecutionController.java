@@ -222,7 +222,8 @@ class ExecutionController {
       // Initialize sleepTime lazily
       sleepTime = ArithmeticUtils.gcd(period, cgroupPeriod);
     }
-    Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
+//    Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
+    Thread.sleep(sleepTime);
   }
 
 
@@ -331,11 +332,11 @@ class ExecutionController {
   }
 
   private boolean isTimeToRunCGroupPolicy(long now) {
-    return lastCgroupPolicyRun + cgroupPeriod < now;
+    return lastCgroupPolicyRun + (cgroupPeriod/1000) < now;
   }
 
   private boolean isTimeToRunPolicy(long now) {
-    return lastPolicyRun + period < now;
+    return lastPolicyRun + (period/1000) < now;
   }
 
   /**
@@ -345,7 +346,8 @@ class ExecutionController {
    * @return The maximum number of retries.
    */
   public long maxRetries() {
-    return MAX_SCHEDULE_RETRY_TIME / period;
+    long divider = period < 1000 ? 1 : period/1000;
+    return MAX_SCHEDULE_RETRY_TIME / divider;
   }
 
   /**
@@ -369,7 +371,7 @@ class ExecutionController {
         LOG.info("Forcing enabled");
         LOG.info("Using {} [{}, {}]", MinMaxDecisionNormalizer.class.getSimpleName(),
             minPriority, maxPriority);
-        return new MinMaxDecisionNormalizer(maxPriority, minPriority, true);
+        return new MinMaxDecisionNormalizer(minPriority, maxPriority, true);
       }
       LOG.info("Forcing disabled");
       LOG.info("Using {} [{}, {}]", NiceDecisionNormalizer.class.getSimpleName(),
