@@ -39,6 +39,10 @@ public abstract class AbstractSinglePriorityTranslator implements
       return;
     }
     final Map<ExternalThread, Long> normalizedSchedule = normalizer.normalize(schedule);
+//    for (ExternalThread t : normalizedSchedule.keySet()){
+//      System.out.println(t.name()+" "+schedule.get(t)+" "+normalizedSchedule.get(t));
+//    }
+//    System.out.println();
     reportStatistics(schedule, normalizedSchedule);
     final int updates = applyDirect(normalizedSchedule);
     LOG.debug("{} finished applying policy: {} priority updates ({} ms)",

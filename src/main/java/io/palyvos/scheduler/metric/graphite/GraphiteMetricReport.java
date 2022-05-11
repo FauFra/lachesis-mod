@@ -38,6 +38,23 @@ public class GraphiteMetricReport {
     return datapoints.get(datapoints.size()-1).get(DATAPOINT_VALUE_INDEX);
   }
 
+  public Double sum(){
+    return  datapoints.stream()
+            .map(dp -> dp.get(DATAPOINT_VALUE_INDEX))
+            .filter(Objects::nonNull)
+            .mapToDouble(v -> v)
+            .sum();
+  }
+
+  public Double lastNotNull(){
+    double[] array =  datapoints.stream()
+            .map(dp -> dp.get(DATAPOINT_VALUE_INDEX))
+            .filter(Objects::nonNull)
+            .mapToDouble(v -> v)
+            .toArray();
+    return array.length > 0 ? array[array.length-1] : 0;
+  }
+
   @Override
   public String toString() {
     return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)

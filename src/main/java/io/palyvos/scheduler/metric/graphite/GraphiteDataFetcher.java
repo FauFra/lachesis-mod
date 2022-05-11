@@ -21,10 +21,14 @@ public class GraphiteDataFetcher {
   private static final Logger LOG = LogManager.getLogger();
   private final URI graphiteURI;
   private final Gson gson = new GsonBuilder().create();
+  private int countMax;
+  private int countZero;
 
   public GraphiteDataFetcher(String graphiteHost, int graphitePort) {
     this.graphiteURI = URI
         .create(String.format("http://%s:%d", graphiteHost, graphitePort));
+    this.countMax=0;
+    this.countZero=0;
   }
 
   public Map<String, Double> fetchFromGraphite(String target,
@@ -41,9 +45,12 @@ public class GraphiteDataFetcher {
       }
     }
 
+//    double avg = result.entrySet().stream().filter(entry -> !entry.getKey().equals("source")).mapToDouble(Map.Entry::getValue).average().getAsDouble();
+//    result.put("source",avg);
+
     //TODO inserisco l'external queue size
 //    getExternalQueueSize(windowSeconds, result, reduceFunction);
-      getOutputQueueSizeTest(1,result,reduceFunction);
+    getExternalQueueKafka(windowSeconds,result,reduceFunction);
 
     //TODO inserisco l'output queue size
     getOutputQueueSize(windowSeconds,result,reduceFunction);
@@ -92,22 +99,39 @@ public class GraphiteDataFetcher {
     }
   }
 
-  private void getOutputQueueSizeTest(int windowSeconds, Map<String, Double> result, Function<GraphiteMetricReport, Double> reduceFunction) {
-    String requestStorm = "Storm.*.*.*.source.*.last-offset-tuple.*";
+  private void getExternalQueueKafka(int windowSeconds, Map<String, Double> result, Function<GraphiteMetricReport, Double> reduceFunction){
+    String request = "groupByNode(kafka-external-queue.*, %d, 'avg')";
+    request = formatRequest(request);
+    GraphiteMetricReport[] reports1 = rawFetchFromGraphite(request, windowSeconds);
+    for(GraphiteMetricReport report : reports1){
+      Double reportValue = reduceFunction.apply(report);
+      result.put("source", reportValue);
+    }
+  }
+
+  private void getExternalQueueKafka(int windowSeconds, Map<String, Double> result) {
+    String requestStorm = "Storm.*.*.*.*.*.last-offset-tuple.*";
+//    String requestStorm = "Storm.*.*.*.source.*.emit-count.default.value";
     String requestKafka = "kafka.tuple.last-offset.value";
 //    request = formatRequest(request);
-    GraphiteMetricReport[] reports1 = rawFetchFromGraphite(requestStorm, windowSeconds);
+    GraphiteMetricReport[] reports1 = rawFetchFromGraphite(requestStorm, 3600);
     GraphiteMetricReport[] reports2 = rawFetchFromGraphite(requestKafka, windowSeconds);
 
-    System.out.println("Storm reports");
-    for (GraphiteMetricReport report : reports1){
-      System.out.println(report.toString());
-    }
 
-    System.out.println("Kafka reports");
-    for (GraphiteMetricReport report : reports2){
-      System.out.println(report.toString());
-    }
+
+//    Double stormReport = reduceFunction.apply(reports1[0]);
+//    Double kafkaReport = reduceFunction.apply(reports2[0]);
+//    Double stormReport = reports1[0].sum();
+    Double stormReport = reports1[0].lastNotNull();
+    Double kafkaReport = reports2[0].lastNotNull();
+    Double reportValue = kafkaReport-stormReport;
+//    System.out.println(reportValue);
+
+//    //Make sure that the value doesn't exceed the boundaries
+    reportValue = reportValue < 0 ? 0 : reportValue;
+    reportValue = reportValue > 102400 ? 102400 :  reportValue;
+
+    result.put("source",reportValue);
   }
 
   private String formatRequest(String graphiteQuery){
