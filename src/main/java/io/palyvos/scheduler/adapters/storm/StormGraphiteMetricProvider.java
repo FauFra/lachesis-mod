@@ -25,8 +25,13 @@ public class StormGraphiteMetricProvider extends AbstractMetricProvider<StormGra
   }
 
   Map<String, Double> fetchFromGraphite(String target,
-      int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction) {
-    return graphiteDataFetcher.fetchFromGraphite(target, windowSeconds, reduceFunction);
+    int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction) {
+    return this.fetchFromGraphite(target, windowSeconds, reduceFunction, "", 1);
+  }
+
+  Map<String, Double> fetchFromGraphite(String target,
+      int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction, String nameExtension, int tuplesBatchSize) {
+    return graphiteDataFetcher.fetchFromGraphite(target, windowSeconds, reduceFunction, nameExtension, tuplesBatchSize);
   }
 
 }

@@ -32,30 +32,32 @@ public class GraphiteDataFetcher {
   }
 
   public Map<String, Double> fetchFromGraphite(String target,
-      int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction) {
+      int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction, String nameExtension, int tuplesBatchSize) {
     GraphiteMetricReport[] reports = rawFetchFromGraphite(target, windowSeconds);
     Map<String, Double> result = new HashMap<String, Double>();
     for (GraphiteMetricReport report : reports) {
       Double reportValue = reduceFunction.apply(report);
       if (reportValue != null) {
         //Null values can exist due to leftovers in graphite data
-        String report_name_helper = report.name().concat("-helper");
-        result.put(report.name(), reportValue * 100);
-        result.put(report_name_helper, reportValue * 100);
+        String report_name = report.name().concat(nameExtension);
+        result.put(report_name, reportValue * tuplesBatchSize);
       }
     }
 
-//    double avg = result.entrySet().stream().filter(entry -> !entry.getKey().equals("source")).mapToDouble(Map.Entry::getValue).average().getAsDouble();
-//    result.put("source",avg);
 
     //TODO inserisco l'external queue size
 //    getExternalQueueSize(windowSeconds, result, reduceFunction);
-    getExternalQueueKafka(windowSeconds,result,reduceFunction);
+//    getExternalQueueKafka(windowSeconds,result,reduceFunction);
 
     //TODO inserisco l'output queue size
-    getOutputQueueSize(windowSeconds,result,reduceFunction);
+//    getOutputQueueSize(windowSeconds,result,reduceFunction);
 
     return result;
+  }
+
+  public Map<String, Double> fetchFromGraphite(String target,
+      int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction){
+    return this.fetchFromGraphite(target, windowSeconds, reduceFunction, "", 1);
   }
 
   GraphiteMetricReport[] rawFetchFromGraphite(String target, int windowSeconds) {
@@ -93,14 +95,14 @@ public class GraphiteDataFetcher {
     GraphiteMetricReport[] reports1 = rawFetchFromGraphite(request, windowSeconds);
     for(GraphiteMetricReport report : reports1){
       Double reportValue = reduceFunction.apply(report);
-//      System.out.println(report.name()+" "+reportValue);
       String report_name_helper = report.name().concat("-helper");
       result.put(report_name_helper, reportValue);
     }
   }
 
   private void getExternalQueueKafka(int windowSeconds, Map<String, Double> result, Function<GraphiteMetricReport, Double> reduceFunction){
-    String request = "groupByNode(kafka-external-queue.*, %d, 'avg')";
+//    String request = "groupByNode(kafka-external-queue.*, %d, 'avg')";
+    String request = "groupByNode(Storm.*.%s.*.*.*.kafkaExternalQueueTest.value, %d, 'avg')";
     request = formatRequest(request);
     GraphiteMetricReport[] reports1 = rawFetchFromGraphite(request, windowSeconds);
     for(GraphiteMetricReport report : reports1){
