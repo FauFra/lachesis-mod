@@ -1,6 +1,7 @@
 package io.palyvos.scheduler.adapters.storm;
 
 import io.palyvos.scheduler.metric.AbstractMetricProvider;
+import io.palyvos.scheduler.metric.ConfigMetric;
 import io.palyvos.scheduler.metric.graphite.GraphiteDataFetcher;
 import io.palyvos.scheduler.metric.graphite.GraphiteMetricReport;
 import java.util.Map;
@@ -27,6 +28,11 @@ public class StormGraphiteMetricProvider extends AbstractMetricProvider<StormGra
   Map<String, Double> fetchFromGraphite(String target,
     int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction) {
     return this.fetchFromGraphite(target, windowSeconds, reduceFunction, "", 1);
+  }
+
+  Map<String, Double> fetchFromGraphite(String target[],
+                                        int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction, Map<String, ConfigMetric> configMetrics) {
+    return graphiteDataFetcher.fetchFromGraphite(target, windowSeconds, reduceFunction, configMetrics);
   }
 
   Map<String, Double> fetchFromGraphite(String target,

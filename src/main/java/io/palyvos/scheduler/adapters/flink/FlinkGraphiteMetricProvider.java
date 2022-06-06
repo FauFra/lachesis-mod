@@ -1,6 +1,7 @@
 package io.palyvos.scheduler.adapters.flink;
 
 import io.palyvos.scheduler.metric.AbstractMetricProvider;
+import io.palyvos.scheduler.metric.ConfigMetric;
 import io.palyvos.scheduler.metric.graphite.GraphiteDataFetcher;
 import io.palyvos.scheduler.metric.graphite.GraphiteMetricReport;
 import io.palyvos.scheduler.task.Task;
@@ -34,6 +35,11 @@ public class FlinkGraphiteMetricProvider extends AbstractMetricProvider<FlinkGra
   Map<String, Double> fetchFromGraphite(String target,
       int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction) {
     return graphiteDataFetcher.fetchFromGraphite(target, windowSeconds, reduceFunction);
+  }
+
+  Map<String, Double> fetchFromGraphite(String target[],
+                                        int windowSeconds, Function<GraphiteMetricReport, Double> reduceFunction, Map<String, ConfigMetric> configMetrics) {
+    return graphiteDataFetcher.fetchFromGraphite(target, windowSeconds, reduceFunction, configMetrics);
   }
 
 }

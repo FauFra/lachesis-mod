@@ -18,6 +18,9 @@ public class GraphiteMetricReport {
   /** List of lists in the format((value, ts), ...) */
   private List<List<Double>> datapoints;
 
+  public String tagsName(){
+    return tags.get("name");
+  }
   public String name() {
     return target;
   }
