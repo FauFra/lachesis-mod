@@ -81,7 +81,6 @@ public enum StormGraphiteMetric implements Metric<StormGraphiteMetric> {
       }
 
       metricName.append(metricNameArray[metricNameArray.length-2]);
-      System.out.println("Metric name: "+metricName.toString());
       aux.put(metricName.toString(), configMetric);
     }
 

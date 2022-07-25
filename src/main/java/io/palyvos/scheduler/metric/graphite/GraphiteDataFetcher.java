@@ -40,11 +40,9 @@ public class GraphiteDataFetcher {
         //Null values can exist due to leftovers in graphite data
         ConfigMetric configMetric = retrieveConfig(configMetrics, report.tagsName());
         String report_name = report.name().concat(configMetric.getMetricSuffix());
-        System.out.printf(" Report name: %s\t Batch size: %f\n", report_name, (reportValue * configMetric.getBatchSize()));
         result.put(report_name, reportValue * configMetric.getBatchSize());
       }
     }
-    System.out.println();
 
     return result;
   }
